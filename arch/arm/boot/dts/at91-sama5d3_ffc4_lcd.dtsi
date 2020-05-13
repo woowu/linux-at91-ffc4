@@ -1,0 +1,105 @@
+/*
+ * Device Tree Include file for FFC4 display module on SAMA5D3 FFC4 board
+ *
+ *  Copyright (C) 2014 Atmel,
+ *                2019 Landis+Gyr
+ *
+ * Licensed under GPLv2.
+ */
+ 
+/ {
+	ahb {
+		apb {
+			i2c0: i2c@f0014000 {
+				focaltech_5x26@38 {
+					compatible = "edt,edt-ft5406", "edt,edt-ft5x06";
+					reg = <0x38>;
+					pinctrl-names = "default";
+					pinctrl-0 = <&pinctrl_lcd_ctp_int>;
+					interrupt-parent = <&pioB>;
+					interrupts = <29 IRQ_TYPE_EDGE_FALLING>;
+			
+					touchscreen-size-x = <480>;
+					touchscreen-size-y = <800>;
+					
+					touchscreen-inverted-y;
+					touchscreen-swapped-x-y;
+					
+					status = "okay";
+				};
+			};
+
+			hlcdc: hlcdc@f0030000 {
+				status = "okay";
+
+				hlcdc-display-controller {
+					pinctrl-names = "default";
+					pinctrl-0 = <&pinctrl_lcd_base &pinctrl_lcd_rgb888>;
+					
+					port@0 {
+						hlcdc_panel_output: endpoint@0 {
+							reg = <0>;
+							remote-endpoint = <&panel_input>;
+						};
+					};
+				};
+			};
+
+			pinctrl@fffff200 {
+				board {
+					pinctrl_lcd_ctp_int: lcd_ctp_int {
+						 atmel,pins =
+							 <AT91_PIOB 29 AT91_PERIPH_GPIO AT91_PINCTRL_PULL_UP_DEGLITCH>;
+					};
+				};
+			};
+		};
+	};
+
+	backlight: backlight {
+		compatible = "pwm-backlight";
+		pwms = <&hlcdc_pwm 0 50000 0>;
+		brightness-levels = <0 4 8 16 32 64 128 255>;
+		default-brightness-level = <7>;
+		power-supply = <&bl_reg>;
+		status = "okay";
+		enable-gpios = <&pioD 30 GPIO_ACTIVE_LOW>;
+	};
+
+	bl_reg: backlight_regulator {
+		compatible = "regulator-fixed";
+		regulator-name = "backlight-power-supply";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		status = "okay";
+	};
+
+	panel: panel {
+		compatible = "innolux,at070tn92", "simple-panel";
+		backlight = <&backlight>;
+		power-supply = <&panel_reg>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+		status = "okay";
+		enable-gpios = <&pioD 29 GPIO_ACTIVE_LOW>;
+
+		port@0 {
+			reg = <0>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			panel_input: endpoint@0 {
+				reg = <0>;
+				remote-endpoint = <&hlcdc_panel_output>;
+			};
+		};
+	};
+
+	panel_reg: panel_regulator {
+		compatible = "regulator-fixed";
+		regulator-name = "panel-power-supply";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		status = "okay";
+	};
+};
