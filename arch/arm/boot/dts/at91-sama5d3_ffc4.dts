@@ -228,7 +228,7 @@
 			pinctr-name = "default";
 			status = "okay";
 
-			xrserial1: xrserial@2,0 {
+			xrserial1: xrserial@0,0 {
 				compatible = "exar,xr16l788";
 
 				#address-cells = <1>;
